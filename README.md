@@ -1,2 +1,2 @@
-# ELK_beats
+# ELK Stack - Docker Compose
 ELK Stack with Beats [Filebeat, Heartbeat]
