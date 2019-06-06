@@ -6,10 +6,13 @@ filebeat.modules:
       enabled: true
     auth:
       enabled: true
+    log:
+      enabled: false
+      level: debug
   - module: auditd
     log:
-      # Does not look like Auditd is supported in Alpine linux: https://github.com/linuxkit/linuxkit/issues/52
       enabled: false
+      level: debug
 
 filebeat.inputs:
   - type: docker
@@ -18,7 +21,7 @@ filebeat.inputs:
       stream: "stdout" # can be all, stdout or stderr
       ids:
         - "*"
-    exclude_lines: ["^\\s+[\\-`('.|_]", ""] # drop asciiart lines
+    exclude_lines: ["^\\s+[\\-`('.|_]", "/elasticsearch/"] # drop asciiart lines
     multiline.pattern: "^\t|^[[:space:]]+(at|...)|^Caused by:"
     multiline.match: after
 

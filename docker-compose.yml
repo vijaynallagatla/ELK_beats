@@ -74,6 +74,20 @@ services:
       - kibana
       - logstash
 
+  curator:
+    build:
+      context: curator/
+    environment:
+      ELASTICSEARCH_HOST: elasticsearch:9200
+      CRON: 0 0 * * *
+      CONFIG_FILE: /usr/share/curator/config/curator.yml
+      COMMAND: /usr/share/curator/config/delete_log_files_curator.yml
+      UNIT_COUNT: 2
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch
+
   kibana:
     build:
       context: kibana/
