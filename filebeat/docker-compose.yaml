@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:6.7.1
+    restart: always
+    command: filebeat -e -strict.perms=false
+    #volumnes mount depend on you OS ( Windows or Linux )
+    volumes:
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./sample_log:/usr/share/filebeat/logs
+    # networks:
+    #   - elk
+    # links:
+    #   - elasticsearch
+    #   - kibana

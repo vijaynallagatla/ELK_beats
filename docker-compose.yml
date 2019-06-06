@@ -1,0 +1,100 @@
+version: "3.7"
+
+services:
+  elasticsearch:
+    build:
+      context: elasticsearch/
+      args:
+        ELK_VERSION: $ELK_VERSION
+    volumes:
+      - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      - esdata:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    restart: always
+    environment:
+      ES_JAVA_OPTS: "-Xmx512m -Xms512m"
+      # ELASTIC_PASSWORD: changeme
+    networks:
+      - elk
+
+  logstash:
+    build:
+      context: logstash/
+      args:
+        ELK_VERSION: $ELK_VERSION
+    volumes:
+      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+    ports:
+      - "5000:5000"
+      - "9600:9600"
+    restart: always
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:$ELK_VERSION
+    command: filebeat -e -strict.perms=false
+    #volumnes mount depend on you OS ( Windows or Linux )
+    # configs:
+    #   - source: fb_config
+    #     target: /usr/share/filebeat/filebeat.yml
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - filebeat:/usr/share/filebeat/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      # This is needed for filebeat to load container log path as specified in filebeat.yml
+      - /var/lib/docker/containers/:/var/lib/docker/containers/:ro
+
+      # # This is needed for filebeat to load jenkins build log path as specified in filebeat.yml
+      # - /var/lib/docker/volumes/jenkins_home/_data/jobs/:/var/lib/docker/volumes/jenkins_home/_data/jobs/:ro
+
+      # This is needed for filebeat to load logs for system and auth modules
+      - /var/log/:/var/log/:ro
+      # This is needed for filebeat to load logs for auditd module
+      # - /var/log/audit/:/var/log/audit/:ro
+    hostname: "{{.Node.Hostname}}-filebeat"
+    user: root
+    networks:
+      - elk
+    restart: always
+    links:
+      - elasticsearch
+      - kibana
+      - logstash
+    depends_on:
+      - elasticsearch
+      - kibana
+      - logstash
+
+  kibana:
+    build:
+      context: kibana/
+      args:
+        ELK_VERSION: $ELK_VERSION
+    volumes:
+      - ./kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+    ports:
+      - "5601:5601"
+    networks:
+      - elk
+    restart: always
+    depends_on:
+      - elasticsearch
+
+volumes:
+  esdata:
+  filebeat:
+
+networks:
+  elk:
+    driver: bridge
+# configs:
+#   fb_config:
+#     file: $PWD/filebeat/filebeat.yml
