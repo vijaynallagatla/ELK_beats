@@ -15,10 +15,10 @@ filebeat.inputs:
   - type: docker
     enabled: true
     containers:
-      stream: all # can be all, stdout or stderr
+      stream: "stdout" # can be all, stdout or stderr
       ids:
         - "*"
-    exclude_lines: ["^\\s+[\\-`('.|_]"] # drop asciiart lines
+    exclude_lines: ["^\\s+[\\-`('.|_]", ""] # drop asciiart lines
     multiline.pattern: "^\t|^[[:space:]]+(at|...)|^Caused by:"
     multiline.match: after
 
@@ -46,9 +46,9 @@ processors:
 #   # username: ${ELASTICSEARCH_USERNAME}
 #   # password: ${ELASTICSEARCH_PASSWORD}
 
-#========================== Elasticsearch output ===============================
+#========================== Logstash output ===============================
 output.logstash:
-  hosts: ["http://logstash:5044"]
+  hosts: ["logstash:5044"]
   loadbalance: true
   index: filebeat
 

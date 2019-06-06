@@ -29,6 +29,7 @@ services:
       - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
     ports:
       - "5000:5000"
+      - "5044:5044"
       - "9600:9600"
     restart: always
     environment:
